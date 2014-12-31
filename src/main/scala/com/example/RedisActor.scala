@@ -5,23 +5,34 @@ import com.redis._
 
 class RedisActor extends Actor with ActorLogging {
   import RedisActor._
-  val client = new RedisClient("localhost", 6379)
+  lazy val clients = new RedisClientPool("localhost", 56379)
 
   def receive = {
 
-    case Set(key, value) => {
-      client.set(key, value)
+    case SetMsg(key, value) => {
+      clients.withClient {
+        client => {
+          log.info("Setting key [{}] to value [{}]", key, value)
+          val result = client.set(key, value)
+          log.info("Setting has ended: [{}]", result)
+        }
+      }
     }
-    case Get(key) => {
-      val toReturn = client.get(key)
-      sender ! ReturnValue(toReturn)
+    case GetMsg(key) => {
+      clients.withClient {
+        client => {
+          log.info("Getting key's value")
+          val toReturn = client.get(key)
+          sender ! ReturnedValMsg(toReturn)
+        }
+      }
     }
   }
 }
 
 object RedisActor {
   val props = Props[RedisActor]
-  case class Set(key: String, value: String)
-  case class Get(key: String)
-  case class ReturnValue(value: Option[String])
+  case class SetMsg(key: String, value: String)
+  case class GetMsg(key: String)
+  case class ReturnedValMsg(value: Option[String])
 }
