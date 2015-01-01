@@ -31,26 +31,26 @@ class RedisActorSpec(_system: ActorSystem) extends TestKit(_system) with Implici
       val futureVal = redisActor ? RedisActor.KeyExistsMsg("klucz")
 
       val result = Await.result(futureVal, 500 millis)
-      result should be (Success("klucz", false))
+      result should be (RedisActor.KeyExistsResponseMsg("klucz", false))
     }
 
-    it("try to get inexistent value") {
+    it("try to get non-existent value") {
       val redisActor = system.actorOf(RedisActor.props)
       val futureVal = redisActor ? RedisActor.GetMsg("klucz")
 
       val result = Await.result(futureVal, 500 millis)
-      result should be (Failure)
+      result should be (RedisActor.GetResponseMsg(None))
     }
 
     it("setting a value works") {
       val redisActor = system.actorOf(RedisActor.props)
       redisActor ! RedisActor.SetMsg("klucz", "wartosc")
-      //redisActor ! RedisActor.GetMsg("klucz")
-      //expectMsg(500 millis, RedisActor.ReturnedValMsg)
-
       val futureVal = redisActor ? RedisActor.GetMsg("klucz")
-      val Success(result: RedisActor.ReturnedValMsg) =  futureVal.value.get
-      result should be ("wartosc")
+
+      val result = Await.result(futureVal, 500 millis)
+      result should be (RedisActor.GetResponseMsg(Some("wartosc")))
+
+      redisActor ! RedisActor.DelMsg("klucz")
     }
   }
 }

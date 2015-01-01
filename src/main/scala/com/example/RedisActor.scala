@@ -32,7 +32,15 @@ class RedisActor extends Actor with ActorLogging {
         client => {
           log.info("Getting key's value for [{}]", key)
           val toReturn = client.get(key)
-          sender ! ReturnedValMsg(toReturn)
+          sender ! GetResponseMsg(toReturn)
+        }
+      }
+    }
+    case DelMsg(key) => {
+      clients.withClient {
+        client => {
+          log.info("Deleting key [{}]", key)
+          client.del(key)
         }
       }
     }
@@ -43,7 +51,8 @@ object RedisActor {
   val props = Props[RedisActor]
   case class KeyExistsMsg(key: String)
   case class KeyExistsResponseMsg(key: String, doesIt: Boolean)
-  case class SetMsg(key: String, value: String)
   case class GetMsg(key: String)
-  case class ReturnedValMsg(value: Option[String])
+  case class GetResponseMsg(value: Option[String])
+  case class SetMsg(key: String, value: String)
+  case class DelMsg(key: String)
 }
