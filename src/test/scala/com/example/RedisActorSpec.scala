@@ -8,9 +8,9 @@ import scala.concurrent.Await
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
-import org.scalatest.{BeforeAndAfterAll, FunSpecLike, Matchers}
+import org.scalatest.{BeforeAndAfterAll, FunSpecLike, Matchers, TryValues}
 
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class RedisActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FunSpecLike with Matchers with BeforeAndAfterAll {
 
@@ -25,6 +25,23 @@ class RedisActorSpec(_system: ActorSystem) extends TestKit(_system) with Implici
   }
 
   describe("Redis actor") {
+
+    it("check whether non-existent key exists") {
+      val redisActor = system.actorOf(RedisActor.props)
+      val futureVal = redisActor ? RedisActor.KeyExistsMsg("klucz")
+
+      val result = Await.result(futureVal, 500 millis)
+      result should be (Success("klucz", false))
+    }
+
+    it("try to get inexistent value") {
+      val redisActor = system.actorOf(RedisActor.props)
+      val futureVal = redisActor ? RedisActor.GetMsg("klucz")
+
+      val result = Await.result(futureVal, 500 millis)
+      result should be (Failure)
+    }
+
     it("setting a value works") {
       val redisActor = system.actorOf(RedisActor.props)
       redisActor ! RedisActor.SetMsg("klucz", "wartosc")

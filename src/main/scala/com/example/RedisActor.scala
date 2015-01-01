@@ -9,6 +9,15 @@ class RedisActor extends Actor with ActorLogging {
 
   def receive = {
 
+    case KeyExistsMsg(key) => {
+      clients.withClient {
+        client => {
+          log.info("Checking whether key [{}] exists", key)
+          val result = client.exists(key)
+          sender ! KeyExistsResponseMsg(key, result)
+        }
+      }
+    }
     case SetMsg(key, value) => {
       clients.withClient {
         client => {
@@ -21,7 +30,7 @@ class RedisActor extends Actor with ActorLogging {
     case GetMsg(key) => {
       clients.withClient {
         client => {
-          log.info("Getting key's value")
+          log.info("Getting key's value for [{}]", key)
           val toReturn = client.get(key)
           sender ! ReturnedValMsg(toReturn)
         }
@@ -32,6 +41,8 @@ class RedisActor extends Actor with ActorLogging {
 
 object RedisActor {
   val props = Props[RedisActor]
+  case class KeyExistsMsg(key: String)
+  case class KeyExistsResponseMsg(key: String, doesIt: Boolean)
   case class SetMsg(key: String, value: String)
   case class GetMsg(key: String)
   case class ReturnedValMsg(value: Option[String])
