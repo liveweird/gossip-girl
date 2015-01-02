@@ -26,31 +26,31 @@ class RedisActorSpec(_system: ActorSystem) extends TestKit(_system) with Implici
 
   describe("Redis actor") {
 
-    it("check whether non-existent key exists") {
+    it("check whether non-existent field exists") {
       val redisActor = system.actorOf(RedisActor.props)
-      val futureVal = redisActor ? RedisActor.KeyExistsMsg("klucz")
+      val futureVal = redisActor ? RedisActor.FieldExistsMsg("klucz", "pole")
 
       val result = Await.result(futureVal, 500 millis)
-      result should be (RedisActor.KeyExistsResponseMsg("klucz", false))
+      result should be (RedisActor.FieldExistsResponseMsg("klucz", "pole", false))
     }
 
     it("try to get non-existent value") {
       val redisActor = system.actorOf(RedisActor.props)
-      val futureVal = redisActor ? RedisActor.GetMsg("klucz")
+      val futureVal = redisActor ? RedisActor.GetFieldMsg("klucz", "pole")
 
       val result = Await.result(futureVal, 500 millis)
-      result should be (RedisActor.GetResponseMsg(None))
+      result should be (RedisActor.GetFieldResponseMsg("klucz", "pole", None))
     }
 
     it("setting a value works") {
       val redisActor = system.actorOf(RedisActor.props)
-      redisActor ! RedisActor.SetMsg("klucz", "wartosc")
-      val futureVal = redisActor ? RedisActor.GetMsg("klucz")
+      redisActor ! RedisActor.SetFieldMsg("klucz", "pole", "wartosc")
+      val futureVal = redisActor ? RedisActor.GetFieldMsg("kxlucz", "pole")
 
       val result = Await.result(futureVal, 500 millis)
-      result should be (RedisActor.GetResponseMsg(Some("wartosc")))
+      result should be (RedisActor.GetFieldResponseMsg("klucz", "pole", Some("wartosc")))
 
-      redisActor ! RedisActor.DelMsg("klucz")
+      redisActor ! RedisActor.DelFieldMsg("klucz", "pole")
     }
   }
 }

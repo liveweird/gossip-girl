@@ -9,38 +9,38 @@ class RedisActor extends Actor with ActorLogging {
 
   def receive = {
 
-    case KeyExistsMsg(key) => {
+    case FieldExistsMsg(key, field) => {
       clients.withClient {
         client => {
-          log.info("Checking whether key [{}] exists", key)
-          val result = client.exists(key)
-          sender ! KeyExistsResponseMsg(key, result)
+          log.info("Checking whether key [{}], field [{}] exists", key, field)
+          val result = client.hexists(key, field)
+          sender ! FieldExistsResponseMsg(key, field, result)
         }
       }
     }
-    case SetMsg(key, value) => {
+    case SetFieldMsg(key, field, value) => {
       clients.withClient {
         client => {
-          log.info("Setting key [{}] to value [{}]", key, value)
-          val result = client.set(key, value)
+          log.info("Setting key [{}], field [{}] to value [{}]", key, field, value)
+          val result = client.hset(key, field, value)
           log.info("Setting has ended: [{}]", result)
         }
       }
     }
-    case GetMsg(key) => {
+    case GetFieldMsg(key, field) => {
       clients.withClient {
         client => {
-          log.info("Getting key's value for [{}]", key)
-          val toReturn = client.get(key)
-          sender ! GetResponseMsg(toReturn)
+          log.info("Getting key's value for key [{}], field [{}]", key, field)
+          val toReturn = client.hget(key, field)
+          sender ! GetFieldResponseMsg(key, field, toReturn)
         }
       }
     }
-    case DelMsg(key) => {
+    case DelFieldMsg(key, field) => {
       clients.withClient {
         client => {
-          log.info("Deleting key [{}]", key)
-          client.del(key)
+          log.info("Deleting key [{}], field [{}]", key, field)
+          client.hdel(key, field)
         }
       }
     }
@@ -51,8 +51,10 @@ object RedisActor {
   val props = Props[RedisActor]
   case class KeyExistsMsg(key: String)
   case class KeyExistsResponseMsg(key: String, doesIt: Boolean)
-  case class GetMsg(key: String)
-  case class GetResponseMsg(value: Option[String])
-  case class SetMsg(key: String, value: String)
-  case class DelMsg(key: String)
+  case class FieldExistsMsg(key: String, field: String)
+  case class FieldExistsResponseMsg(key: String, field: String, doesIt: Boolean)
+  case class GetFieldMsg(key: String, field: String)
+  case class GetFieldResponseMsg(key: String, field: String, value: Option[String])
+  case class SetFieldMsg(key: String, field: String, value: String)
+  case class DelFieldMsg(key: String, field: String)
 }
