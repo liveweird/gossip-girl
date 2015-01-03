@@ -31,5 +31,15 @@
     <orderEntry type="library" name="SBT: net.debasishg:redisclient_2.11:2.13:jar" level="project" />
     <orderEntry type="library" name="SBT: org.slf4j:slf4j-api:1.7.9:jar" level="project" />
     <orderEntry type="library" name="SBT: org.slf4j:slf4j-simple:1.7.9:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.twitter:util-app:6.5.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.twitter:util-core:6.5.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.twitter:util-logging:6.5.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.twitter:util-zk:6.5.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: javax.activation:activation:1.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: javax.mail:mail:1.4:jar" level="project" />
+    <orderEntry type="library" name="SBT: jline:jline:0.9.94:jar" level="project" />
+    <orderEntry type="library" name="SBT: junit:junit:3.8.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: log4j:log4j:1.2.15:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.apache.zookeeper:zookeeper:3.3.4:jar" level="project" />
   </component>
 </module>
