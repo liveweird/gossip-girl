@@ -1,4 +1,4 @@
-package com.example
+package net.gebski.gossip_girl
 
 import akka.util.Timeout
 

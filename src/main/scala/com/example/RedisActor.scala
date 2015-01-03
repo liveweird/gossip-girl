@@ -1,4 +1,4 @@
-package com.example
+package net.gebski.gossip_girl
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.redis._

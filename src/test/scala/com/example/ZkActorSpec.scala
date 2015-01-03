@@ -1,4 +1,4 @@
-package com.example
+package net.gebski.gossip_girl
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
