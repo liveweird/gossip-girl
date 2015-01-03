@@ -1,4 +1,4 @@
-package net.gebski.gossip_girl
+package net.gebski.gossip_girl.redis
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.redis._

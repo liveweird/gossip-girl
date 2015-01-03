@@ -1,6 +1,4 @@
-package net.gebski.gossip_girl
-
-import akka.util.Timeout
+package net.gebski.gossip_girl.redis
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -8,9 +6,9 @@ import scala.concurrent.Await
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
-import org.scalatest.{BeforeAndAfterAll, FunSpecLike, Matchers, TryValues}
+import akka.util.Timeout
 
-import scala.util.{Failure, Success}
+import org.scalatest.{BeforeAndAfterAll, FunSpecLike, Matchers}
 
 class RedisActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FunSpecLike with Matchers with BeforeAndAfterAll {
 

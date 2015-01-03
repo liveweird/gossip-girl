@@ -1,4 +1,4 @@
-package net.gebski.gossip_girl
+package net.gebski.gossip_girl.zk
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -7,6 +7,7 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.util.Timeout
+
 import org.scalatest.{BeforeAndAfterAll, Matchers, FunSpecLike}
 
 class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FunSpecLike with Matchers with BeforeAndAfterAll {

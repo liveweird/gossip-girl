@@ -1,4 +1,4 @@
-package net.gebski.gossip_girl
+package net.gebski.gossip_girl.zk
 
 import akka.actor.{ActorLogging, Actor, Props}
 
@@ -14,7 +14,7 @@ class ZkActor extends Actor with ActorLogging {
 }
 
 object ZkActor {
-  val props = Props[RedisActor]
+  val props = Props[ZkActor]
   case class PathExistsMsg(path: String)
   case class PathExistsResponseMsg(path: String, doesIt: Boolean)
 }
