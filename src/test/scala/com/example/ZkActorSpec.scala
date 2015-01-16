@@ -1,5 +1,7 @@
 package net.gebski.gossip_girl.zk
 
+import net.gebski.gossip_girl.zk.ZkActor.CreateNodeResponseMsg
+
 import scala.concurrent.Await
 
 import akka.actor.ActorSystem
@@ -42,10 +44,22 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     it("properly creates a top-level ephemeral node without a parent") {
       val zkActor = system.actorOf(ZkActor.props)
-      val futureVal = zkActor ? ZkActor.CreateNodeMsg("/sciezka", "whatever")
 
-      val result = Await.result(futureVal, 2 seconds)
-      result should be (ZkActor.CreateNodeResponseMsg("/sciezka", "whatever", true))
+      val createFut = zkActor ? ZkActor.CreateNodeMsg("/sciezka", "whatever")
+      val createRes = Await.result(createFut, 2 seconds)
+
+      val newPath = createRes match {
+        case ZkActor.CreateNodeResponseMsg(p, "whatever", true) => {
+          p
+        }
+        case _ => {
+          fail()
+        }
+      }
+
+      val getFut = zkActor ? ZkActor.GetNodeMsg(newPath)
+      val getRes = Await.result(getFut, 2 seconds)
+      getRes should be (ZkActor.GetNodeResponseMsg(newPath, "whatever"))
     }
   }
 }

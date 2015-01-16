@@ -37,8 +37,16 @@ class ZkActor extends Actor with ActorLogging {
       log.info("Creating node in path [{}]", path)
       val zoo = Await.result(zkClient(), 2 seconds)
       val result = zoo.create(path, content.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL)
-      log.info("Creating node in path [{}], result: [{}]", path, result)
-      sender ! CreateNodeResponseMsg(path, content, true)
+      log.info("Creating node in path [{}], result: [{}]", result, content)
+      sender ! CreateNodeResponseMsg(result, content, true)
+    }
+    case GetNodeMsg(path) => {
+      log.info("Getting node in path [{}]", path)
+      val zoo = Await.result(zkClient(), 2 seconds)
+      val result = zoo.getData(path, false, new Stat())
+      val stringized = new String(result)
+      log.info("Getting node in path [{}], result: [{}]", path, stringized)
+      sender ! GetNodeResponseMsg(path, stringized)
     }
   }
 }
@@ -51,4 +59,6 @@ object ZkActor {
   case class PathExistsResponseMsg(path: String, doesIt: Boolean)
   case class CreateNodeMsg(path: String, content: String)
   case class CreateNodeResponseMsg(path: String, content: String, created: Boolean)
+  case class GetNodeMsg(path: String)
+  case class GetNodeResponseMsg(path: String, content: String)
 }
