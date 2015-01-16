@@ -28,7 +28,7 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       val zkActor = system.actorOf(ZkActor.props)
       val futureVal = zkActor ? ZkActor.CurrStateMsg
 
-      val result = Await.result(futureVal, 500 millis)
+      val result = Await.result(futureVal, 2 seconds)
       result should be (ZkActor.CurrStateResponseMsg(true))
     }
 
@@ -36,8 +36,16 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       val zkActor = system.actorOf(ZkActor.props)
       val futureVal = zkActor ? ZkActor.PathExistsMsg("/sciezka")
 
-      val result = Await.result(futureVal, 500 millis)
+      val result = Await.result(futureVal, 2 seconds)
       result should be (ZkActor.PathExistsResponseMsg("/sciezka", false))
+    }
+
+    it("properly creates a top-level ephemeral node without a parent") {
+      val zkActor = system.actorOf(ZkActor.props)
+      val futureVal = zkActor ? ZkActor.CreateNodeMsg("/sciezka", "whatever")
+
+      val result = Await.result(futureVal, 2 seconds)
+      result should be (ZkActor.CreateNodeResponseMsg("/sciezka", "whatever", true))
     }
   }
 }
