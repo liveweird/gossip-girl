@@ -1,6 +1,6 @@
 package net.gebski.gossip_girl.zk
 
-import net.gebski.gossip_girl.zk.ZkActor.CreateNodeResponseMsg
+import net.gebski.gossip_girl.zk.ZkActor.{TechErrorResponseMsg, CreateNodeResponseMsg}
 
 import scala.concurrent.Await
 
@@ -30,7 +30,7 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       val zkActor = system.actorOf(ZkActor.props)
       val futureVal = zkActor ? ZkActor.CurrStateMsg
 
-      val result = Await.result(futureVal, 2 seconds)
+      val result = Await.result(futureVal, 10 seconds)
       result should be (ZkActor.CurrStateResponseMsg(true))
     }
 
@@ -38,7 +38,7 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       val zkActor = system.actorOf(ZkActor.props)
       val futureVal = zkActor ? ZkActor.PathExistsMsg("/sciezka")
 
-      val result = Await.result(futureVal, 2 seconds)
+      val result = Await.result(futureVal, 10 seconds)
       result should be (ZkActor.PathExistsResponseMsg("/sciezka", false))
     }
 
@@ -46,7 +46,26 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       val zkActor = system.actorOf(ZkActor.props)
 
       val createFut = zkActor ? ZkActor.CreateNodeMsg("/sciezka", "whatever")
-      val createRes = Await.result(createFut, 2 seconds)
+      val createRes = Await.result(createFut, 10 seconds)
+
+      val newPath = createRes match {
+        case ZkActor.CreateNodeResponseMsg(p, "whatever", true) => {
+          val futureVal = zkActor ? ZkActor.PathExistsMsg(p)
+
+          val result = Await.result(futureVal, 10 seconds)
+          result should be (ZkActor.PathExistsResponseMsg(p, true))
+        }
+        case _ => {
+          fail()
+        }
+      }
+    }
+
+    it("gets existing ephemeral node contents") {
+      val zkActor = system.actorOf(ZkActor.props)
+
+      val createFut = zkActor ? ZkActor.CreateNodeMsg("/sciezka", "whatever")
+      val createRes = Await.result(createFut, 10 seconds)
 
       val newPath = createRes match {
         case ZkActor.CreateNodeResponseMsg(p, "whatever", true) => {
@@ -58,8 +77,16 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       }
 
       val getFut = zkActor ? ZkActor.GetNodeMsg(newPath)
-      val getRes = Await.result(getFut, 2 seconds)
+      val getRes = Await.result(getFut, 10 seconds)
       getRes should be (ZkActor.GetNodeResponseMsg(newPath, "whatever"))
+    }
+
+    it("gets non-existing ephemeral node & fails") {
+      val zkActor = system.actorOf(ZkActor.props)
+
+      val getFut = zkActor ? ZkActor.GetNodeMsg("/iamnothereatall")
+      val getRes = Await.result(getFut, 10 seconds)
+      getRes shouldBe a [TechErrorResponseMsg]
     }
   }
 }

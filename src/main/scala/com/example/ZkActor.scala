@@ -5,7 +5,7 @@ import com.twitter.zk.ZNode.Exists
 import com.twitter.zk.{ZNode, NativeConnector, Connector, ZkClient}
 
 import akka.actor.{ActorLogging, Actor, Props}
-import org.apache.zookeeper.{ZooDefs, CreateMode}
+import org.apache.zookeeper.{KeeperException, ZooDefs, CreateMode}
 import org.apache.zookeeper.ZooKeeper.States
 import org.apache.zookeeper.data.{ACL, Stat}
 
@@ -43,10 +43,18 @@ class ZkActor extends Actor with ActorLogging {
     case GetNodeMsg(path) => {
       log.info("Getting node in path [{}]", path)
       val zoo = Await.result(zkClient(), 2 seconds)
-      val result = zoo.getData(path, false, new Stat())
-      val stringized = new String(result)
-      log.info("Getting node in path [{}], result: [{}]", path, stringized)
-      sender ! GetNodeResponseMsg(path, stringized)
+      try {
+        val result = zoo.getData(path, false, new Stat())
+        val stringized = new String(result)
+        log.info("Getting node in path [{}], result: [{}]", path, stringized)
+        sender ! GetNodeResponseMsg(path, stringized)
+      }
+      catch {
+        case ex: KeeperException => {
+          log.info("Error encountered while getting path [{}]: [{}]", path, ex.getMessage())
+          sender ! TechErrorResponseMsg(ex.getMessage())
+        }
+      }
     }
   }
 }
@@ -61,4 +69,5 @@ object ZkActor {
   case class CreateNodeResponseMsg(path: String, content: String, created: Boolean)
   case class GetNodeMsg(path: String)
   case class GetNodeResponseMsg(path: String, content: String)
+  case class TechErrorResponseMsg(message: String)
 }
