@@ -36,9 +36,17 @@ class ZkActor extends Actor with ActorLogging {
     case CreateNodeMsg(path, content) => {
       log.info("Creating node in path [{}]", path)
       val zoo = Await.result(zkClient(), 2 seconds)
-      val result = zoo.create(path, content.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL)
-      log.info("Creating node in path [{}], result: [{}]", result, content)
-      sender ! CreateNodeResponseMsg(result, content, true)
+      try {
+        val result = zoo.create(path, content.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL)
+        log.info("Creating node in path [{}], result: [{}]", result, content)
+        sender ! CreateNodeResponseMsg(result, content, true)
+      }
+      catch {
+        case ex: KeeperException => {
+          log.info("Error encountered while creating node in path [{}]: [{}]", path, ex.getMessage())
+          sender ! TechErrorResponseMsg(ex.code().toString())
+        }
+      }
     }
     case GetNodeMsg(path) => {
       log.info("Getting node in path [{}]", path)
@@ -52,7 +60,7 @@ class ZkActor extends Actor with ActorLogging {
       catch {
         case ex: KeeperException => {
           log.info("Error encountered while getting path [{}]: [{}]", path, ex.getMessage())
-          sender ! TechErrorResponseMsg(ex.getMessage())
+          sender ! TechErrorResponseMsg(ex.code().toString())
         }
       }
     }

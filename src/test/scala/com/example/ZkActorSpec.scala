@@ -1,6 +1,7 @@
 package net.gebski.gossip_girl.zk
 
 import net.gebski.gossip_girl.zk.ZkActor.{TechErrorResponseMsg, CreateNodeResponseMsg}
+import org.apache.zookeeper.KeeperException
 
 import scala.concurrent.Await
 
@@ -86,7 +87,38 @@ class ZkActorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
       val getFut = zkActor ? ZkActor.GetNodeMsg("/iamnothereatall")
       val getRes = Await.result(getFut, 10 seconds)
-      getRes shouldBe a [TechErrorResponseMsg]
+      getRes should be (TechErrorResponseMsg(KeeperException.Code.NONODE.toString()))
+    }
+
+    it("can't create an ephemeral node when parent doesn't exist") {
+      val zkActor = system.actorOf(ZkActor.props)
+
+      val createFut = zkActor ? ZkActor.CreateNodeMsg("/niemamnie/sciezka", "whatever")
+      val createRes = Await.result(createFut, 10 seconds)
+      createRes should be (TechErrorResponseMsg(KeeperException.Code.NONODE.toString()))
+    }
+
+    it("can't create any kind of child for ephemeral node") {
+      val zkActor = system.actorOf(ZkActor.props)
+
+      val createFut = zkActor ? ZkActor.CreateNodeMsg("/sciezka", "whatever")
+      val createRes = Await.result(createFut, 10 seconds)
+
+      val newPath = createRes match {
+        case ZkActor.CreateNodeResponseMsg(p, "whatever", true) => {
+          val futureVal = zkActor ? ZkActor.PathExistsMsg(p)
+
+          val result = Await.result(futureVal, 10 seconds)
+          result should be (ZkActor.PathExistsResponseMsg(p, true))
+
+          val createFut2 = zkActor ? ZkActor.CreateNodeMsg(p + "/dzieciak", "whatever")
+          val createRes2 = Await.result(createFut2, 10 seconds)
+          createRes2 should be (TechErrorResponseMsg(KeeperException.Code.NOCHILDRENFOREPHEMERALS.toString()))
+        }
+        case _ => {
+          fail()
+        }
+      }
     }
   }
 }
